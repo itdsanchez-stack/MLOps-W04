@@ -1,4 +1,15 @@
-pip
-python-dotenv
-ruff
+# Dependencias con versión fija (mantener sincronizado con python_env.yaml)
+mlflow==3.16.0
+scikit-learn==1.4.2
+pandas==3.0.5
+numpy==2.4.6
+matplotlib==3.11.2
+
+# Solo para el notebook de exploración
+seaborn==0.13.2
+
+# Formato y lint del código (make lint / make format)
+ruff==0.17.0
+
+# Instala el paquete del proyecto en modo editable (import ai4i_maintenance)
 -e .

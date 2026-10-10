@@ -1,0 +1,17 @@
+name: ai4i-predictive-maintenance
+
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      max_depth: {type: string, default: "None"}
+      min_samples_leaf: {type: string, default: "1"}
+      criterion: {type: string, default: gini}
+      class_weight: {type: string, default: none}
+      seed: {type: string, default: "42"}
+    command: >-
+      python -m ai4i_maintenance.dataset &&
+      python -m ai4i_maintenance.modeling.train
+      --max-depth {max_depth} --min-samples-leaf {min_samples_leaf}
+      --criterion {criterion} --class-weight {class_weight} --seed {seed}

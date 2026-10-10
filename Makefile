@@ -1,79 +1,33 @@
-#################################################################################
-# GLOBALS                                                                       #
-#################################################################################
+.PHONY: requirements data train experiments mlflow-server lint format
 
-PROJECT_NAME = MLOps-W04
-PYTHON_VERSION = 3.11
-PYTHON_INTERPRETER = python
-
-#################################################################################
-# COMMANDS                                                                      #
-#################################################################################
-
-
-## Install Python dependencies
-.PHONY: requirements
 requirements:
-	$(PYTHON_INTERPRETER) -m pip install -U pip
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
-	
+	pip install -r requirements.txt
 
+data:
+	python -m ai4i_maintenance.dataset
 
+train: data
+	python -m ai4i_maintenance.modeling.train
 
-## Delete all compiled Python files
-.PHONY: clean
-clean:
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
+experiments: data
+	python -m ai4i_maintenance.modeling.train
+	python -m ai4i_maintenance.modeling.train --max-depth 5
+	python -m ai4i_maintenance.modeling.train --max-depth 8
+	python -m ai4i_maintenance.modeling.train --max-depth 12
+	python -m ai4i_maintenance.modeling.train --min-samples-leaf 5
+	python -m ai4i_maintenance.modeling.train --min-samples-leaf 20
+	python -m ai4i_maintenance.modeling.train --criterion entropy
+	python -m ai4i_maintenance.modeling.train --class-weight balanced
+	python -m ai4i_maintenance.modeling.train --criterion entropy --max-depth 10 --min-samples-leaf 2
+	python -m ai4i_maintenance.modeling.train --criterion entropy --max-depth 10 --min-samples-leaf 2 --run-name reproducibility_check
 
+mlflow-server:
+	mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
 
-## Lint using ruff (use `make format` to do formatting)
-.PHONY: lint
 lint:
 	ruff format --check
 	ruff check
 
-## Format source code with ruff
-.PHONY: format
 format:
 	ruff check --fix
 	ruff format
-
-
-
-
-
-## Set up Python interpreter environment
-.PHONY: create_environment
-create_environment:
-	
-	conda create --name $(PROJECT_NAME) python=$(PYTHON_VERSION) -y
-	
-	@echo ">>> conda env created. Activate with:\nconda activate $(PROJECT_NAME)"
-	
-
-
-
-#################################################################################
-# PROJECT RULES                                                                 #
-#################################################################################
-
-
-
-#################################################################################
-# Self Documenting Commands                                                     #
-#################################################################################
-
-.DEFAULT_GOAL := help
-
-define PRINT_HELP_PYSCRIPT
-import re, sys; \
-lines = '\n'.join([line for line in sys.stdin]); \
-matches = re.findall(r'\n## (.*)\n[\s\S]+?\n([a-zA-Z_-]+):', lines); \
-print('Available rules:\n'); \
-print('\n'.join(['{:25}{}'.format(*reversed(match)) for match in matches]))
-endef
-export PRINT_HELP_PYSCRIPT
-
-help:
-	@$(PYTHON_INTERPRETER) -c "${PRINT_HELP_PYSCRIPT}" < $(MAKEFILE_LIST)
